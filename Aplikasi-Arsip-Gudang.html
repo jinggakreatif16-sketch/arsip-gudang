@@ -1,0 +1,1206 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#1B3A6B">
+<title>Sistem Arsip Gudang</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js"></script>
+<style>
+:root{
+  --navy:#1B3A6B;--navy-mid:#2563EB;--navy-pal:#EFF6FF;--navy-bdr:#BFDBFE;
+  --green:#166534;--green-mid:#16A34A;--green-pal:#F0FDF4;--green-bdr:#BBF7D0;
+  --red:#991B1B;--red-mid:#DC2626;--red-pal:#FEF2F2;--red-bdr:#FECACA;
+  --orange:#92400E;--orange-mid:#D97706;--orange-pal:#FFFBEB;--orange-bdr:#FDE68A;
+  --purple:#6D28D9;--purple-pal:#F5F3FF;--purple-bdr:#DDD6FE;
+  --gray:#374151;--gray-lt:#F9FAFB;--gray-bd:#E5E7EB;--gray-md:#6B7280;
+  --text:#111827;--white:#fff;
+  --r:10px;--r-lg:14px;--r-xl:18px;
+  --sh:0 1px 4px rgba(0,0,0,.08);--sh-md:0 4px 16px rgba(0,0,0,.12);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:'Plus Jakarta Sans',-apple-system,sans-serif;background:#F0F4F8;color:var(--text);min-height:100vh;padding-bottom:76px}
+input,select,textarea,button{font-family:inherit}
+
+/* HEADER */
+.hdr{background:linear-gradient(135deg,var(--navy),#1D4ED8);padding:14px 16px;position:sticky;top:0;z-index:80;box-shadow:0 2px 10px rgba(0,0,0,.2)}
+.hdr-row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.hdr-logo{display:flex;align-items:center;gap:10px}
+.hdr-icon{width:40px;height:40px;border-radius:12px;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.hdr-title{font-size:15px;font-weight:800;color:#fff;line-height:1.2}
+.hdr-sub{font-size:11px;color:rgba(255,255,255,.65);margin-top:1px}
+.hdr-btn{background:rgba(255,255,255,.15);border:none;color:rgba(255,255,255,.9);font-size:11px;font-weight:600;padding:7px 11px;border-radius:8px;cursor:pointer;display:flex;align-items:center;gap:5px}
+
+/* BOTTOM NAV */
+.bnav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--gray-bd);display:flex;z-index:80;box-shadow:0 -2px 8px rgba(0,0,0,.07)}
+.nb{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:9px 2px 10px;border:none;background:none;cursor:pointer;color:var(--gray-md);font-size:10.5px;font-weight:500;border-top:2.5px solid transparent;transition:color .15s}
+.nb.on{color:var(--navy-mid);border-top-color:var(--navy-mid);font-weight:700}
+.nb-icon{font-size:20px;line-height:1}
+
+/* PAGES */
+.pg{display:none;padding:14px}
+.pg.on{display:block}
+
+/* CARDS */
+.card{background:#fff;border-radius:var(--r-lg);padding:14px 16px;box-shadow:var(--sh);margin-bottom:12px}
+.card-sm{background:#fff;border-radius:var(--r);padding:11px 13px;box-shadow:var(--sh);margin-bottom:9px}
+
+/* STAT GRID */
+.stat-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:12px}
+.stat-card{background:#fff;border-radius:var(--r-lg);padding:13px;box-shadow:var(--sh);text-align:center;border-top:3px solid transparent}
+.stat-val{font-size:26px;font-weight:800;line-height:1}
+.stat-lbl{font-size:10.5px;font-weight:600;margin-top:4px;color:var(--gray-md)}
+
+/* BADGES */
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700;white-space:nowrap}
+.badge-gudang{background:var(--navy-pal);color:var(--navy-mid)}
+.badge-keluar{background:var(--orange-pal);color:var(--orange-mid);border:1px solid var(--orange-bdr)}
+.badge-musnah{background:var(--red-pal);color:var(--red-mid)}
+.badge-pinjam{background:var(--purple-pal);color:var(--purple)}
+
+/* FORMS */
+.fld{margin-bottom:13px}
+.lbl{display:block;font-size:11px;font-weight:700;color:var(--gray-md);text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px}
+.inp{width:100%;padding:10px 12px;border:1.5px solid var(--gray-bd);border-radius:var(--r);font-size:13.5px;color:var(--text);outline:none;background:#fff;transition:border-color .15s}
+.inp:focus{border-color:var(--navy-mid)}
+textarea.inp{min-height:68px;resize:vertical;line-height:1.5}
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:11px 16px;border:none;border-radius:var(--r);font-size:13.5px;font-weight:700;cursor:pointer;transition:opacity .15s;white-space:nowrap}
+.btn:active{opacity:.8}
+.btn-primary{background:var(--navy-mid);color:#fff}
+.btn-green{background:var(--green-mid);color:#fff}
+.btn-red{background:var(--red-mid);color:#fff}
+.btn-orange{background:var(--orange-mid);color:#fff}
+.btn-ghost{background:var(--gray-lt);color:var(--gray)}
+.btn-outline{background:#fff;border:1.5px solid var(--gray-bd);color:var(--gray)}
+.btn-full{width:100%}
+.btn-sm{padding:7px 11px;font-size:12px;border-radius:8px}
+.btn-icon{width:34px;height:34px;padding:0;border-radius:9px;font-size:15px;flex-shrink:0}
+
+/* SEARCH */
+.srch{display:flex;align-items:center;gap:8px;background:#fff;border:1.5px solid var(--gray-bd);border-radius:var(--r);padding:10px 13px;margin-bottom:12px}
+.srch input{flex:1;border:none;outline:none;font-size:13.5px;color:var(--text);background:none}
+
+/* CHIPS */
+.chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;margin-bottom:12px}
+.chip{padding:6px 13px;border-radius:20px;border:1.5px solid var(--gray-bd);background:#fff;color:var(--gray-md);font-size:11.5px;font-weight:700;white-space:nowrap;cursor:pointer;flex-shrink:0;font-family:inherit}
+.chip.on{background:var(--navy-pal);border-color:var(--navy-mid);color:var(--navy-mid)}
+
+/* ARSIP CARD */
+.acard{background:#fff;border-radius:var(--r-lg);padding:13px 15px;box-shadow:var(--sh);margin-bottom:10px;border-left:4px solid var(--gray-bd);cursor:pointer;transition:box-shadow .15s}
+.acard:active{box-shadow:var(--sh-md)}
+.acard.gudang{border-left-color:var(--navy-mid)}
+.acard.keluar{border-left-color:var(--orange-mid)}
+.acard.musnah{border-left-color:var(--red-mid)}
+.acard.pinjam{border-left-color:var(--purple)}
+.acard-nomor{font-size:15px;font-weight:800;color:var(--text);letter-spacing:.3px}
+.acard-nama{font-size:13px;color:var(--gray);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.acard-meta{font-size:11px;color:var(--gray-md);margin-top:5px;display:flex;flex-wrap:wrap;gap:8px}
+
+/* OVERLAY / SHEET */
+.ovl{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;display:none;align-items:flex-end;justify-content:center}
+.ovl.on{display:flex}
+.sheet{background:#fff;border-radius:20px 20px 0 0;width:100%;max-width:520px;max-height:93vh;display:flex;flex-direction:column;animation:shup .25s ease}
+.sh-handle{width:36px;height:4px;background:var(--gray-bd);border-radius:2px;margin:12px auto 5px}
+.sh-hdr{display:flex;justify-content:space-between;align-items:center;padding:8px 18px 13px;border-bottom:1px solid var(--gray-lt)}
+.sh-title{font-size:15px;font-weight:800;color:var(--text)}
+.sh-body{overflow-y:auto;padding:6px 18px 28px;flex:1}
+.x-btn{width:30px;height:30px;border-radius:8px;background:var(--gray-lt);border:none;font-size:16px;cursor:pointer;color:var(--gray-md);display:flex;align-items:center;justify-content:center}
+
+/* SCAN */
+.scan-box{position:relative;width:100%;aspect-ratio:1;background:#000;border-radius:var(--r-lg);overflow:hidden;margin-bottom:12px}
+#scan-video{width:100%;height:100%;object-fit:cover;display:block}
+.scan-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none}
+.scan-frame{width:65%;aspect-ratio:1;border:3px solid rgba(255,255,255,.9);border-radius:12px;box-shadow:0 0 0 9999px rgba(0,0,0,.4)}
+.scan-corner{position:absolute;width:20px;height:20px;border-color:#fff;border-style:solid}
+.scan-corner.tl{top:-1px;left:-1px;border-width:3px 0 0 3px;border-radius:4px 0 0 0}
+.scan-corner.tr{top:-1px;right:-1px;border-width:3px 3px 0 0;border-radius:0 4px 0 0}
+.scan-corner.bl{bottom:-1px;left:-1px;border-width:0 0 3px 3px;border-radius:0 0 0 4px}
+.scan-corner.br{bottom:-1px;right:-1px;border-width:0 3px 3px 0;border-radius:0 0 4px 0}
+
+/* QR LABEL */
+.qr-label{background:#fff;border:2px solid #000;border-radius:var(--r);padding:14px;text-align:center;max-width:280px;margin:0 auto}
+.qr-label-title{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;color:#000}
+.qr-label-nomor{font-size:18px;font-weight:900;color:#000;margin-bottom:4px}
+.qr-label-info{font-size:10px;color:#333;line-height:1.5}
+#qr-canvas-container canvas{margin:8px auto;display:block}
+
+/* INFO BOX */
+.info-box{border-radius:var(--r);padding:10px 12px;font-size:12px;line-height:1.6;margin-bottom:13px}
+.info-blue{background:var(--navy-pal);color:var(--navy)}
+.info-green{background:var(--green-pal);color:var(--green)}
+.info-red{background:var(--red-pal);color:var(--red-mid)}
+.info-orange{background:var(--orange-pal);color:var(--orange)}
+
+/* TIMELINE LOG */
+.tl-item{display:flex;gap:10px;padding-bottom:12px}
+.tl-item:last-child{padding-bottom:0}
+.tl-dot{width:26px;height:26px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
+.tl-line-wrap{display:flex;flex-direction:column;align-items:center}
+.tl-vline{width:2px;flex:1;background:var(--gray-bd);margin-top:3px}
+
+/* SECTION TITLE */
+.sec-title{font-size:12px;font-weight:700;color:var(--gray-md);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+
+/* MISC */
+.divider{height:1px;background:var(--gray-lt);margin:12px 0}
+.empty{text-align:center;padding:40px 20px}
+.empty-icon{font-size:36px;margin-bottom:12px}
+.empty-title{font-size:14px;font-weight:700;color:var(--gray);margin-bottom:5px}
+.empty-sub{font-size:12px;color:var(--gray-md);line-height:1.6;max-width:260px;margin:0 auto 16px}
+.toast{position:fixed;bottom:86px;left:50%;transform:translateX(-50%) translateY(20px);background:#1B2A3B;color:#fff;padding:11px 18px;border-radius:12px;font-size:13px;font-weight:600;z-index:999;box-shadow:var(--sh-md);opacity:0;transition:all .3s;pointer-events:none;white-space:nowrap;max-width:90vw}
+.toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+.spin{animation:spin 1s linear infinite}
+.retensi-ok{color:var(--green-mid);font-weight:700}
+.retensi-warn{color:var(--orange-mid);font-weight:700}
+.retensi-over{color:var(--red-mid);font-weight:700}
+
+@keyframes shup{from{transform:translateY(100%)}to{transform:translateY(0)}}
+@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+@keyframes fadein{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+@media print{
+  .hdr,.bnav,.no-print{display:none!important}
+  body{background:#fff;padding-bottom:0}
+  .qr-label{border:2px solid #000;break-inside:avoid}
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="hdr">
+  <div class="hdr-row">
+    <div class="hdr-logo">
+      <div class="hdr-icon">🗂️</div>
+      <div>
+        <div class="hdr-title">Sistem Arsip Gudang</div>
+        <div class="hdr-sub" id="hdr-sub">Memuat data...</div>
+      </div>
+    </div>
+    <button class="hdr-btn" onclick="syncAll()" id="sync-btn">
+      <span id="sync-ic">🔄</span> Sinkron
+    </button>
+  </div>
+</div>
+
+<!-- ══════════════ HALAMAN DASHBOARD ══════════════ -->
+<div class="pg on" id="pg-dashboard">
+  <!-- Setup banner -->
+  <div id="setup-banner" class="card" style="background:linear-gradient(135deg,#1B3A6B,#1D4ED8);display:none">
+    <div style="font-size:14px;font-weight:800;color:#fff;margin-bottom:6px">⚙️ Hubungkan ke Google Sheets</div>
+    <div style="font-size:12px;color:rgba(255,255,255,.8);line-height:1.6;margin-bottom:12px">
+      Masukkan URL Google Apps Script Anda agar data tersinkron otomatis ke Sheets.
+    </div>
+    <div style="display:flex;gap:8px">
+      <input id="api-url-in" class="inp" placeholder="https://script.google.com/macros/s/.../exec" style="flex:1;font-size:12px">
+      <button class="btn btn-sm" style="background:#fff;color:var(--navy);flex-shrink:0" onclick="saveUrl()">Simpan</button>
+    </div>
+    <div id="url-msg" style="font-size:11px;color:rgba(255,255,255,.75);margin-top:6px"></div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stat-grid">
+    <div class="stat-card" style="border-top-color:var(--navy-mid)">
+      <div class="stat-val" id="st-total" style="color:var(--navy-mid)">—</div>
+      <div class="stat-lbl">Total Dus Arsip</div>
+    </div>
+    <div class="stat-card" style="border-top-color:var(--green-mid)">
+      <div class="stat-val" id="st-gudang" style="color:var(--green-mid)">—</div>
+      <div class="stat-lbl">Di Gudang</div>
+    </div>
+    <div class="stat-card" style="border-top-color:var(--orange-mid)">
+      <div class="stat-val" id="st-keluar" style="color:var(--orange-mid)">—</div>
+      <div class="stat-lbl">Keluar / Dipinjam</div>
+    </div>
+    <div class="stat-card" style="border-top-color:var(--red-mid)">
+      <div class="stat-val" id="st-musnah" style="color:var(--red-mid)">—</div>
+      <div class="stat-lbl">Dimusnahkan</div>
+    </div>
+  </div>
+
+  <!-- Alert retensi -->
+  <div id="retensi-alert"></div>
+
+  <!-- Aktivitas terbaru -->
+  <div class="sec-title">📋 Arsip Terbaru Masuk</div>
+  <div id="dash-recent"></div>
+</div>
+
+<!-- ══════════════ HALAMAN DATA ARSIP ══════════════ -->
+<div class="pg" id="pg-arsip">
+  <div style="display:flex;gap:10px;margin-bottom:12px">
+    <div class="srch" style="flex:1;margin-bottom:0">
+      <span>🔍</span>
+      <input type="text" placeholder="Cari nomor, nama, divisi..." oninput="filterArsip(this.value)" id="srch-input">
+    </div>
+    <button class="btn btn-sm btn-primary" style="flex-shrink:0" onclick="openForm()">＋ Tambah</button>
+  </div>
+
+  <div class="chips" id="status-chips">
+    <button class="chip on" onclick="setFilter('ALL',this)">Semua</button>
+    <button class="chip" onclick="setFilter('Di Gudang',this)">Di Gudang</button>
+    <button class="chip" onclick="setFilter('Keluar',this)">Keluar</button>
+    <button class="chip" onclick="setFilter('Dipinjam',this)">Dipinjam</button>
+    <button class="chip" onclick="setFilter('Dimusnahkan',this)">Dimusnahkan</button>
+  </div>
+
+  <div id="arsip-list"></div>
+</div>
+
+<!-- ══════════════ HALAMAN SCAN QR ══════════════ -->
+<div class="pg" id="pg-scan">
+  <div class="info-box info-blue">
+    📱 <strong>Cara scan:</strong> Arahkan kamera ke QR Code pada dus arsip. Pastikan QR Code terlihat jelas di dalam bingkai.
+  </div>
+
+  <div class="scan-box" id="scan-box">
+    <video id="scan-video" playsinline autoplay muted></video>
+    <div class="scan-overlay">
+      <div style="position:relative">
+        <div class="scan-frame">
+          <div class="scan-corner tl"></div>
+          <div class="scan-corner tr"></div>
+          <div class="scan-corner bl"></div>
+          <div class="scan-corner br"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <canvas id="scan-canvas" style="display:none"></canvas>
+
+  <div style="display:flex;gap:8px;margin-bottom:12px">
+    <button class="btn btn-primary btn-full" id="start-scan-btn" onclick="startScan()">📷 Mulai Scan</button>
+    <button class="btn btn-ghost btn-full" id="stop-scan-btn" onclick="stopScan()" style="display:none">⏹️ Stop</button>
+  </div>
+
+  <div id="scan-result" style="display:none"></div>
+</div>
+
+<!-- ══════════════ HALAMAN LAPORAN ══════════════ -->
+<div class="pg" id="pg-laporan">
+  <div class="sec-title">📊 Rekap & Laporan</div>
+
+  <div class="card" style="margin-bottom:10px">
+    <div style="font-size:13px;font-weight:700;margin-bottom:12px">Rekap per Divisi</div>
+    <div id="rekap-divisi"></div>
+  </div>
+
+  <div class="card" style="margin-bottom:10px">
+    <div style="font-size:13px;font-weight:700;margin-bottom:12px">Arsip Mendekati Masa Retensi</div>
+    <div id="rekap-retensi"></div>
+  </div>
+
+  <div class="card">
+    <div style="font-size:13px;font-weight:700;margin-bottom:12px">Riwayat Aktivitas Terbaru</div>
+    <div id="log-list"></div>
+  </div>
+</div>
+
+<!-- ══════════════ BOTTOM NAV ══════════════ -->
+<nav class="bnav">
+  <button class="nb on" onclick="showPage('dashboard',this)">
+    <span class="nb-icon">🏠</span>Beranda
+  </button>
+  <button class="nb" onclick="showPage('arsip',this)">
+    <span class="nb-icon">📦</span>Data Arsip
+  </button>
+  <button class="nb" onclick="showPage('scan',this);initScanPage()">
+    <span class="nb-icon">📷</span>Scan QR
+  </button>
+  <button class="nb" onclick="showPage('laporan',this);renderLaporan()">
+    <span class="nb-icon">📊</span>Laporan
+  </button>
+</nav>
+
+<!-- ══════════════ SHEET: FORM ARSIP ══════════════ -->
+<div class="ovl" id="ovl-form">
+  <div class="sheet">
+    <div class="sh-handle"></div>
+    <div class="sh-hdr">
+      <span class="sh-title" id="form-title">Tambah Arsip Baru</span>
+      <button class="x-btn" onclick="closeOvl('ovl-form')">✕</button>
+    </div>
+    <div class="sh-body">
+      <input type="hidden" id="f-id">
+
+      <div class="info-box info-blue" id="f-nomor-info">
+        Nomor dus akan digenerate otomatis. Anda bisa mengubahnya manual.
+      </div>
+
+      <div class="frow">
+        <div class="fld">
+          <label class="lbl">Nomor Dus *</label>
+          <input class="inp" id="f-nomor" placeholder="ARK-2024-001">
+        </div>
+        <div class="fld">
+          <label class="lbl">Status</label>
+          <select class="inp" id="f-status">
+            <option>Di Gudang</option>
+            <option>Keluar</option>
+            <option>Dipinjam</option>
+            <option>Dimusnahkan</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="fld">
+        <label class="lbl">Nama / Jenis Arsip *</label>
+        <input class="inp" id="f-nama" placeholder="cth. Laporan Keuangan Q1 2024">
+      </div>
+
+      <div class="frow">
+        <div class="fld">
+          <label class="lbl">Divisi / Departemen *</label>
+          <input class="inp" id="f-divisi" placeholder="cth. Keuangan">
+        </div>
+        <div class="fld">
+          <label class="lbl">Tahun Arsip</label>
+          <input class="inp" id="f-tahun" type="number" placeholder="2024">
+        </div>
+      </div>
+
+      <div class="frow">
+        <div class="fld">
+          <label class="lbl">Jumlah Berkas</label>
+          <input class="inp" id="f-berkas" type="number" placeholder="0">
+        </div>
+        <div class="fld">
+          <label class="lbl">Nama Pengirim</label>
+          <input class="inp" id="f-pengirim" placeholder="Nama staf">
+        </div>
+      </div>
+
+      <div class="fld">
+        <label class="lbl">Keterangan Isi Arsip</label>
+        <textarea class="inp" id="f-isi" placeholder="Deskripsikan isi berkas dalam dus ini..."></textarea>
+      </div>
+
+      <div class="frow">
+        <div class="fld">
+          <label class="lbl">Tanggal Masuk Gudang</label>
+          <input class="inp" id="f-masuk" type="date">
+        </div>
+        <div class="fld">
+          <label class="lbl">Lokasi Rak / Posisi</label>
+          <input class="inp" id="f-rak" placeholder="cth. Rak A-3">
+        </div>
+      </div>
+
+      <div class="frow">
+        <div class="fld">
+          <label class="lbl">Masa Retensi (tgl musnah)</label>
+          <input class="inp" id="f-retensi" type="date">
+        </div>
+        <div class="fld" id="f-musnah-wrap">
+          <label class="lbl">Tanggal Dimusnahkan</label>
+          <input class="inp" id="f-musnah" type="date">
+        </div>
+      </div>
+
+      <div class="fld">
+        <label class="lbl">Keterangan Tambahan</label>
+        <textarea class="inp" id="f-ket" placeholder="Catatan lainnya..."></textarea>
+      </div>
+
+      <button class="btn btn-primary btn-full" id="f-save-btn" onclick="saveArsip()">💾 Simpan Arsip</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ SHEET: DETAIL ARSIP ══════════════ -->
+<div class="ovl" id="ovl-detail">
+  <div class="sheet">
+    <div class="sh-handle"></div>
+    <div class="sh-hdr">
+      <span class="sh-title" id="det-title">Detail Arsip</span>
+      <button class="x-btn" onclick="closeOvl('ovl-detail')">✕</button>
+    </div>
+    <div class="sh-body" id="det-body"></div>
+  </div>
+</div>
+
+<!-- ══════════════ SHEET: QR CODE & LABEL ══════════════ -->
+<div class="ovl" id="ovl-qr">
+  <div class="sheet">
+    <div class="sh-handle"></div>
+    <div class="sh-hdr">
+      <span class="sh-title">Label QR Code Dus</span>
+      <button class="x-btn" onclick="closeOvl('ovl-qr')">✕</button>
+    </div>
+    <div class="sh-body">
+      <div class="info-box info-green">
+        ✅ QR Code di bawah berisi data lengkap arsip. Tempel pada dus arsip agar bisa discan kapan saja.
+      </div>
+
+      <!-- Label yang akan dicetak -->
+      <div id="print-area">
+        <div class="qr-label" id="qr-label-box">
+          <div class="qr-label-title">📦 ARSIP GUDANG</div>
+          <div class="qr-label-nomor" id="qr-nomor-text">—</div>
+          <div id="qr-canvas-container"></div>
+          <div class="qr-label-info" id="qr-info-text">—</div>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:8px;margin-top:14px" class="no-print">
+        <button class="btn btn-primary btn-full" onclick="printLabel()">🖨️ Cetak Label</button>
+        <button class="btn btn-green btn-full" onclick="downloadQR()">⬇️ Simpan Gambar</button>
+      </div>
+      <div style="font-size:11px;color:var(--gray-md);text-align:center;margin-top:8px" class="no-print">
+        Label berukuran ±8×8 cm, cocok untuk kertas sticker A4
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ════════════════════════════════════════════════
+// STATE
+// ════════════════════════════════════════════════
+let DB = { arsip: [] };
+let API_URL  = localStorage.getItem('arsip_api') || '';
+let filter   = 'ALL';
+let srchQ    = '';
+let scanning = false;
+let scanStream = null;
+let scanInterval = null;
+let editingId  = null;
+
+// ════════════════════════════════════════════════
+// UTILS
+// ════════════════════════════════════════════════
+function uid(p='a'){ return p+'_'+Date.now()+'_'+Math.random().toString(36).slice(2,6); }
+function today(){ return new Date().toISOString().slice(0,10); }
+function fmtDate(s){
+  if(!s) return '—';
+  try{ const d=new Date(s); return d.toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'}); }
+  catch(e){ return s; }
+}
+function daysDiff(s){
+  if(!s) return null;
+  return Math.ceil((new Date(s)-new Date())/(1000*60*60*24));
+}
+function genNomor(){
+  const yr = new Date().getFullYear();
+  const existing = DB.arsip.filter(a=>a.nomorDus&&a.nomorDus.startsWith('ARK-'+yr));
+  const maxNum = existing.reduce((m,a)=>{
+    const parts=a.nomorDus.split('-');
+    const n=parseInt(parts[parts.length-1])||0;
+    return Math.max(m,n);
+  },0);
+  return 'ARK-'+yr+'-'+String(maxNum+1).padStart(3,'0');
+}
+
+function statusClass(s){
+  const m={'Di Gudang':'gudang','Keluar':'keluar','Dipinjam':'pinjam','Dimusnahkan':'musnah'};
+  return m[s]||'gudang';
+}
+function statusBadge(s){
+  const m={
+    'Di Gudang':'<span class="badge badge-gudang">🏛️ Di Gudang</span>',
+    'Keluar'   :'<span class="badge badge-keluar">📤 Keluar</span>',
+    'Dipinjam' :'<span class="badge badge-pinjam">📋 Dipinjam</span>',
+    'Dimusnahkan':'<span class="badge badge-musnah">🗑️ Dimusnahkan</span>',
+  };
+  return m[s]||`<span class="badge">${s}</span>`;
+}
+
+function showToast(msg, type='ok'){
+  const t=document.getElementById('toast');
+  t.style.background = type==='ok'?'#166534':type==='warn'?'#92400E':'#991B1B';
+  t.textContent=msg; t.classList.add('on');
+  setTimeout(()=>t.classList.remove('on'),3000);
+}
+
+// ════════════════════════════════════════════════
+// API
+// ════════════════════════════════════════════════
+async function api(action, data={}){
+  if(!API_URL){ showToast('URL Sheets belum diset','warn'); return null; }
+  try{
+    const res = await fetch(API_URL,{
+      method:'POST',
+      body:JSON.stringify({action,data}),
+      headers:{'Content-Type':'text/plain'}
+    });
+    const j = await res.json();
+    if(!j.ok) throw new Error(j.error||'Gagal');
+    return j;
+  }catch(e){
+    showToast('Gagal terhubung: '+e.message,'err');
+    return null;
+  }
+}
+
+async function syncAll(){
+  if(!API_URL){ document.getElementById('setup-banner').style.display='block'; return; }
+  const ic=document.getElementById('sync-ic');
+  ic.classList.add('spin');
+  document.getElementById('hdr-sub').textContent='Menyinkronkan...';
+  try{
+    const r = await api('getAll');
+    if(r){
+      DB.arsip = r.arsip||[];
+      saveLocal(); renderAll();
+      const t=new Date().toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
+      document.getElementById('hdr-sub').textContent=`${DB.arsip.length} arsip · sync ${t}`;
+      showToast('✓ Data berhasil disinkronkan');
+    }
+  }finally{
+    ic.classList.remove('spin');
+  }
+}
+
+// ════════════════════════════════════════════════
+// LOCAL STORAGE
+// ════════════════════════════════════════════════
+function saveLocal(){ try{localStorage.setItem('arsip_db',JSON.stringify(DB));}catch(e){} }
+function loadLocal(){
+  try{
+    const s=localStorage.getItem('arsip_db');
+    if(s){ const d=JSON.parse(s); DB.arsip=d.arsip||[]; }
+  }catch(e){}
+}
+
+function saveUrl(){
+  const url=document.getElementById('api-url-in').value.trim();
+  if(!url.startsWith('https://')){ showToast('URL tidak valid','err'); return; }
+  API_URL=url; localStorage.setItem('arsip_api',url);
+  document.getElementById('url-msg').textContent='✓ Tersimpan. Tap Sinkron untuk memuat data.';
+  document.getElementById('setup-banner').style.display='none';
+  showToast('URL tersimpan');
+}
+
+// ════════════════════════════════════════════════
+// NAVIGATION
+// ════════════════════════════════════════════════
+function showPage(id,btn){
+  document.querySelectorAll('.pg').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.nb').forEach(b=>b.classList.remove('on'));
+  document.getElementById('pg-'+id).classList.add('on');
+  if(btn) btn.classList.add('on');
+  if(id==='arsip') renderArsipList();
+  if(id!=='scan'){ stopScan(); }
+}
+function openOvl(id){ document.getElementById(id).classList.add('on'); document.body.style.overflow='hidden'; }
+function closeOvl(id){ document.getElementById(id).classList.remove('on'); document.body.style.overflow=''; }
+
+// ════════════════════════════════════════════════
+// RENDER ALL
+// ════════════════════════════════════════════════
+function renderAll(){
+  renderDashboard();
+  renderArsipList();
+}
+
+// ════════════════════════════════════════════════
+// DASHBOARD
+// ════════════════════════════════════════════════
+function renderDashboard(){
+  const total   = DB.arsip.length;
+  const gudang  = DB.arsip.filter(a=>a.status==='Di Gudang').length;
+  const keluar  = DB.arsip.filter(a=>a.status==='Keluar'||a.status==='Dipinjam').length;
+  const musnah  = DB.arsip.filter(a=>a.status==='Dimusnahkan').length;
+
+  document.getElementById('st-total').textContent  = total;
+  document.getElementById('st-gudang').textContent = gudang;
+  document.getElementById('st-keluar').textContent = keluar;
+  document.getElementById('st-musnah').textContent = musnah;
+
+  // Retensi alerts
+  const alerts = DB.arsip
+    .filter(a=>a.masaRetensi && a.status!=='Dimusnahkan')
+    .map(a=>({...a, diff:daysDiff(a.masaRetensi)}))
+    .filter(a=>a.diff!==null && a.diff<=30)
+    .sort((a,b)=>a.diff-b.diff)
+    .slice(0,5);
+
+  const alertEl = document.getElementById('retensi-alert');
+  if(alerts.length>0){
+    alertEl.innerHTML = `
+      <div class="info-box info-orange" style="margin-bottom:12px">
+        <strong>⚠️ ${alerts.length} arsip mendekati masa retensi:</strong><br>
+        ${alerts.map(a=>`• <b>${a.nomorDus}</b> — ${a.diff<0?`LEWAT ${Math.abs(a.diff)} hari`:`${a.diff} hari lagi`} (${fmtDate(a.masaRetensi)})`).join('<br>')}
+      </div>`;
+  } else {
+    alertEl.innerHTML='';
+  }
+
+  // Recent arsip masuk
+  const recent=[...DB.arsip]
+    .filter(a=>a.tanggalMasuk)
+    .sort((a,b)=>new Date(b.tanggalMasuk)-new Date(a.tanggalMasuk))
+    .slice(0,5);
+
+  const recEl=document.getElementById('dash-recent');
+  if(recent.length===0){
+    recEl.innerHTML=`<div class="empty"><div class="empty-icon">📭</div><div class="empty-title">Belum ada arsip</div><div class="empty-sub">Tambahkan arsip pertama Anda di menu Data Arsip.</div></div>`;
+    return;
+  }
+  recEl.innerHTML=recent.map(a=>`
+    <div class="acard ${statusClass(a.status)}" onclick="openDetail('${a.id}')">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+        <div style="flex:1;min-width:0">
+          <div class="acard-nomor">${a.nomorDus||'—'}</div>
+          <div class="acard-nama">${a.namaArsip||'—'}</div>
+        </div>
+        ${statusBadge(a.status)}
+      </div>
+      <div class="acard-meta">
+        ${a.divisi?`<span>🏢 ${a.divisi}</span>`:''}
+        ${a.tahunArsip?`<span>📅 ${a.tahunArsip}</span>`:''}
+        ${a.tanggalMasuk?`<span>📥 ${fmtDate(a.tanggalMasuk)}</span>`:''}
+      </div>
+    </div>`).join('');
+}
+
+// ════════════════════════════════════════════════
+// ARSIP LIST
+// ════════════════════════════════════════════════
+function setFilter(f,btn){
+  filter=f;
+  document.querySelectorAll('#status-chips .chip').forEach(c=>c.classList.remove('on'));
+  btn.classList.add('on');
+  renderArsipList();
+}
+function filterArsip(q){ srchQ=q.toLowerCase(); renderArsipList(); }
+
+function renderArsipList(){
+  let list=DB.arsip;
+  if(filter!=='ALL') list=list.filter(a=>a.status===filter);
+  if(srchQ) list=list.filter(a=>(a.nomorDus+a.namaArsip+a.divisi+a.keteranganIsi).toLowerCase().includes(srchQ));
+  list=[...list].sort((a,b)=>(b.tanggalMasuk||'').localeCompare(a.tanggalMasuk||''));
+
+  const el=document.getElementById('arsip-list');
+  if(list.length===0){
+    el.innerHTML=`<div class="empty"><div class="empty-icon">📦</div><div class="empty-title">${DB.arsip.length===0?'Belum ada arsip':'Tidak ditemukan'}</div><div class="empty-sub">${DB.arsip.length===0?'Tap tombol Tambah untuk mendaftarkan dus arsip pertama.':'Coba kata kunci atau filter lain.'}</div></div>`;
+    return;
+  }
+  el.innerHTML=list.map(a=>{
+    const retensiDiff=daysDiff(a.masaRetensi);
+    let retensiTag='';
+    if(a.masaRetensi&&a.status!=='Dimusnahkan'){
+      if(retensiDiff<0) retensiTag=`<span class="retensi-over">🚨 Retensi lewat ${Math.abs(retensiDiff)} hari</span>`;
+      else if(retensiDiff<=30) retensiTag=`<span class="retensi-warn">⚠️ Retensi ${retensiDiff} hari lagi</span>`;
+      else retensiTag=`<span class="retensi-ok">✓ Retensi OK</span>`;
+    }
+    return `
+    <div class="acard ${statusClass(a.status)}" onclick="openDetail('${a.id}')">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+        <div style="flex:1;min-width:0">
+          <div class="acard-nomor">${a.nomorDus||'—'}</div>
+          <div class="acard-nama">${a.namaArsip||'—'}</div>
+        </div>
+        ${statusBadge(a.status)}
+      </div>
+      <div class="acard-meta">
+        ${a.divisi?`<span>🏢 ${a.divisi}</span>`:''}
+        ${a.tahunArsip?`<span>📅 ${a.tahunArsip}</span>`:''}
+        ${a.lokasiRak?`<span>📍 ${a.lokasiRak}</span>`:''}
+        ${a.jumlahBerkas?`<span>📄 ${a.jumlahBerkas} berkas</span>`:''}
+        ${retensiTag}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ════════════════════════════════════════════════
+// FORM ARSIP
+// ════════════════════════════════════════════════
+function openForm(id=null){
+  editingId=id;
+  document.getElementById('form-title').textContent = id?'Edit Data Arsip':'Tambah Arsip Baru';
+
+  if(id){
+    const a=DB.arsip.find(x=>x.id===id);
+    if(!a) return;
+    document.getElementById('f-id').value       = a.id;
+    document.getElementById('f-nomor').value    = a.nomorDus||'';
+    document.getElementById('f-nama').value     = a.namaArsip||'';
+    document.getElementById('f-divisi').value   = a.divisi||'';
+    document.getElementById('f-tahun').value    = a.tahunArsip||'';
+    document.getElementById('f-berkas').value   = a.jumlahBerkas||'';
+    document.getElementById('f-pengirim').value = a.pengirim||'';
+    document.getElementById('f-isi').value      = a.keteranganIsi||'';
+    document.getElementById('f-masuk').value    = a.tanggalMasuk||'';
+    document.getElementById('f-rak').value      = a.lokasiRak||'';
+    document.getElementById('f-retensi').value  = a.masaRetensi||'';
+    document.getElementById('f-musnah').value   = a.tanggalMusnah||'';
+    document.getElementById('f-status').value   = a.status||'Di Gudang';
+    document.getElementById('f-ket').value      = a.keterangan||'';
+    document.getElementById('f-nomor-info').style.display='none';
+  } else {
+    // Reset & auto-generate nomor
+    ['f-id','f-nama','f-divisi','f-tahun','f-berkas','f-pengirim','f-isi','f-rak','f-retensi','f-musnah','f-ket'].forEach(i=>document.getElementById(i).value='');
+    document.getElementById('f-nomor').value  = genNomor();
+    document.getElementById('f-masuk').value  = today();
+    document.getElementById('f-status').value = 'Di Gudang';
+    document.getElementById('f-nomor-info').style.display='block';
+  }
+  openOvl('ovl-form');
+}
+
+async function saveArsip(){
+  const nomor = document.getElementById('f-nomor').value.trim();
+  const nama  = document.getElementById('f-nama').value.trim();
+  const divisi= document.getElementById('f-divisi').value.trim();
+  if(!nomor||!nama||!divisi){ showToast('Nomor, nama, dan divisi wajib diisi','err'); return; }
+
+  const d = {
+    id: editingId || uid('ark'),
+    nomorDus: nomor, namaArsip: nama, divisi,
+    tahunArsip: document.getElementById('f-tahun').value,
+    jumlahBerkas: document.getElementById('f-berkas').value,
+    pengirim: document.getElementById('f-pengirim').value.trim(),
+    keteranganIsi: document.getElementById('f-isi').value.trim(),
+    tanggalMasuk: document.getElementById('f-masuk').value,
+    lokasiRak: document.getElementById('f-rak').value.trim(),
+    masaRetensi: document.getElementById('f-retensi').value,
+    tanggalMusnah: document.getElementById('f-musnah').value,
+    status: document.getElementById('f-status').value,
+    keterangan: document.getElementById('f-ket').value.trim(),
+  };
+
+  document.getElementById('f-save-btn').textContent='⏳ Menyimpan...';
+  document.getElementById('f-save-btn').disabled=true;
+
+  try{
+    if(editingId){
+      d.aksi = 'UPDATE';
+      d.logKeterangan = 'Data arsip diperbarui';
+      const r = await api('updateArsip',d);
+      if(!r) return;
+      DB.arsip = DB.arsip.map(a=>a.id===editingId?{...a,...d}:a);
+      showToast('✓ Arsip berhasil diperbarui');
+    } else {
+      const r = await api('addArsip',d);
+      if(!r) return;
+      DB.arsip.push(d);
+      showToast('✓ Arsip berhasil ditambahkan');
+    }
+    saveLocal(); renderAll();
+    closeOvl('ovl-form');
+  }finally{
+    document.getElementById('f-save-btn').textContent='💾 Simpan Arsip';
+    document.getElementById('f-save-btn').disabled=false;
+  }
+}
+
+// ════════════════════════════════════════════════
+// DETAIL ARSIP
+// ════════════════════════════════════════════════
+function openDetail(id){
+  const a=DB.arsip.find(x=>x.id===id);
+  if(!a) return;
+  document.getElementById('det-title').textContent = a.nomorDus||'Detail Arsip';
+
+  const retensiDiff = daysDiff(a.masaRetensi);
+  let retensiHtml='';
+  if(a.masaRetensi){
+    const cls = retensiDiff<0?'info-red':retensiDiff<=30?'info-orange':'info-green';
+    const msg = retensiDiff<0?`⚠️ Masa retensi LEWAT ${Math.abs(retensiDiff)} hari — segera tindak lanjuti`
+      :retensiDiff<=30?`⏰ Masa retensi ${retensiDiff} hari lagi (${fmtDate(a.masaRetensi)})`
+      :`✅ Masa retensi masih ${retensiDiff} hari (${fmtDate(a.masaRetensi)})`;
+    retensiHtml=`<div class="info-box ${cls}">${msg}</div>`;
+  }
+
+  document.getElementById('det-body').innerHTML=`
+    <!-- STATUS & TOMBOL AKSI -->
+    <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">
+      ${statusBadge(a.status)}
+      <button class="btn btn-sm btn-outline" onclick="closeOvl('ovl-detail');openForm('${id}')">✏️ Edit</button>
+      <button class="btn btn-sm" style="background:var(--navy-mid);color:#fff" onclick="closeOvl('ovl-detail');openQR('${id}')">📱 QR Label</button>
+      <button class="btn btn-sm btn-red" onclick="hapusArsip('${id}')">🗑️</button>
+    </div>
+
+    ${retensiHtml}
+
+    <!-- INFO DETAIL -->
+    <div style="background:var(--gray-lt);border-radius:var(--r);padding:13px;margin-bottom:14px">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        ${[
+          ['Nomor Dus', a.nomorDus],
+          ['Nama Arsip', a.namaArsip],
+          ['Divisi', a.divisi],
+          ['Tahun Arsip', a.tahunArsip],
+          ['Jumlah Berkas', a.jumlahBerkas?a.jumlahBerkas+' berkas':'—'],
+          ['Pengirim', a.pengirim],
+          ['Lokasi Rak', a.lokasiRak],
+          ['Tgl Masuk Gudang', fmtDate(a.tanggalMasuk)],
+          ['Masa Retensi', fmtDate(a.masaRetensi)],
+          ['Tgl Dimusnahkan', a.tanggalMusnah?fmtDate(a.tanggalMusnah):'—'],
+        ].map(([l,v])=>`
+          <div>
+            <div style="font-size:10px;color:var(--gray-md);font-weight:700;text-transform:uppercase">${l}</div>
+            <div style="font-size:12.5px;font-weight:600;color:var(--text)">${v||'—'}</div>
+          </div>`).join('')}
+      </div>
+      ${a.keteranganIsi?`
+        <div class="divider"></div>
+        <div style="font-size:10px;color:var(--gray-md);font-weight:700;text-transform:uppercase;margin-bottom:4px">Keterangan Isi</div>
+        <div style="font-size:12.5px;color:var(--text);line-height:1.5">${a.keteranganIsi}</div>`:''}
+      ${a.keterangan?`
+        <div class="divider"></div>
+        <div style="font-size:10px;color:var(--gray-md);font-weight:700;text-transform:uppercase;margin-bottom:4px">Catatan</div>
+        <div style="font-size:12.5px;color:var(--text);font-style:italic">${a.keterangan}</div>`:''}
+    </div>
+
+    <!-- UBAH STATUS CEPAT -->
+    <div class="sec-title">🔄 Ubah Status Arsip</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px">
+      ${['Di Gudang','Keluar','Dipinjam','Dimusnahkan'].map(s=>`
+        <button class="btn btn-sm ${a.status===s?'btn-primary':'btn-outline'}" onclick="ubahStatus('${id}','${s}')">${s}</button>
+      `).join('')}
+    </div>
+  `;
+  openOvl('ovl-detail');
+}
+
+async function ubahStatus(id, statusBaru){
+  const a = DB.arsip.find(x=>x.id===id);
+  if(!a||a.status===statusBaru) return;
+  const old = a.status;
+  const aksiMap={'Keluar':'KELUAR','Dipinjam':'PINJAM','Di Gudang':'MASUK','Dimusnahkan':'MUSNAH'};
+  const data = {
+    id, nomorDus:a.nomorDus, status:statusBaru,
+    aksi: aksiMap[statusBaru]||'UPDATE',
+    logKeterangan: `Status berubah dari "${old}" menjadi "${statusBaru}"`,
+    tanggalMusnah: statusBaru==='Dimusnahkan'?today():'',
+  };
+  const r = await api('updateArsip', data);
+  if(!r) return;
+  DB.arsip = DB.arsip.map(x=>x.id===id?{...x,...data}:x);
+  saveLocal(); renderAll();
+  closeOvl('ovl-detail');
+  showToast(`✓ Status diubah ke "${statusBaru}"`);
+}
+
+async function hapusArsip(id){
+  if(!confirm('Hapus data arsip ini dari sistem?')) return;
+  const a = DB.arsip.find(x=>x.id===id);
+  if(!a) return;
+  const r = await api('deleteArsip',{id, nomorDus:a.nomorDus});
+  if(!r) return;
+  DB.arsip = DB.arsip.filter(x=>x.id!==id);
+  saveLocal(); renderAll();
+  closeOvl('ovl-detail');
+  showToast('Data arsip dihapus','warn');
+}
+
+// ════════════════════════════════════════════════
+// QR CODE GENERATOR
+// ════════════════════════════════════════════════
+let currentQrArsipId = null;
+
+function openQR(id){
+  const a = DB.arsip.find(x=>x.id===id);
+  if(!a) return;
+  currentQrArsipId = id;
+
+  // Data yang di-encode ke QR (JSON ringkas)
+  const qrData = JSON.stringify({
+    id: a.id,
+    nomor: a.nomorDus,
+    nama: a.namaArsip,
+    divisi: a.divisi,
+    tahun: a.tahunArsip,
+    rak: a.lokasiRak,
+    masuk: a.tanggalMasuk,
+    retensi: a.masaRetensi,
+    status: a.status,
+  });
+
+  document.getElementById('qr-nomor-text').textContent = a.nomorDus;
+  document.getElementById('qr-info-text').innerHTML =
+    `${a.namaArsip}<br>${a.divisi}${a.tahunArsip?' · '+a.tahunArsip:''}${a.lokasiRak?'<br>Rak: '+a.lokasiRak:''}${a.masaRetensi?'<br>Retensi: '+fmtDate(a.masaRetensi):''}`;
+
+  // Generate QR
+  const container = document.getElementById('qr-canvas-container');
+  container.innerHTML='';
+  new QRCode(container, {
+    text: qrData,
+    width: 160, height: 160,
+    colorDark:'#000000', colorLight:'#ffffff',
+    correctLevel: QRCode.CorrectLevel.M,
+  });
+
+  openOvl('ovl-qr');
+}
+
+function printLabel(){
+  window.print();
+}
+
+function downloadQR(){
+  const box = document.getElementById('qr-label-box');
+  const canvas = box.querySelector('canvas');
+  if(!canvas){ showToast('QR belum terbuat','err'); return; }
+
+  // Buat canvas gabungan (label lengkap)
+  const w=320, h=320;
+  const c=document.createElement('canvas');
+  c.width=w; c.height=h;
+  const ctx=c.getContext('2d');
+
+  // Background putih
+  ctx.fillStyle='#fff';
+  ctx.fillRect(0,0,w,h);
+
+  // Border
+  ctx.strokeStyle='#000';
+  ctx.lineWidth=3;
+  ctx.strokeRect(3,3,w-6,h-6);
+
+  // Judul
+  ctx.fillStyle='#000';
+  ctx.font='bold 13px sans-serif';
+  ctx.textAlign='center';
+  ctx.fillText('📦 ARSIP GUDANG', w/2, 30);
+
+  // Nomor dus
+  const nomor=document.getElementById('qr-nomor-text').textContent;
+  ctx.font='bold 20px sans-serif';
+  ctx.fillText(nomor, w/2, 56);
+
+  // QR Code
+  ctx.drawImage(canvas, (w-160)/2, 65, 160, 160);
+
+  // Info text
+  const info=document.getElementById('qr-info-text').innerText.split('\n');
+  ctx.font='11px sans-serif';
+  ctx.fillStyle='#333';
+  info.forEach((line,i)=>ctx.fillText(line, w/2, 238+(i*16)));
+
+  // Download
+  const a=document.getElementById('qr-label-box').closest('.sheet').querySelector('a');
+  const link=document.createElement('a');
+  const arsip=DB.arsip.find(x=>x.id===currentQrArsipId);
+  link.download=`QR-${arsip?.nomorDus||'arsip'}.png`;
+  link.href=c.toDataURL('image/png');
+  link.click();
+  showToast('✓ QR Code berhasil diunduh');
+}
+
+// ════════════════════════════════════════════════
+// QR SCANNER
+// ════════════════════════════════════════════════
+function initScanPage(){
+  document.getElementById('scan-result').style.display='none';
+  if(!scanning) document.getElementById('start-scan-btn').style.display='flex';
+}
+
+async function startScan(){
+  try{
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video:{ facingMode:'environment', width:{ideal:1280}, height:{ideal:720} }
+    });
+    scanStream=stream;
+    const video=document.getElementById('scan-video');
+    video.srcObject=stream;
+    await video.play();
+    scanning=true;
+    document.getElementById('start-scan-btn').style.display='none';
+    document.getElementById('stop-scan-btn').style.display='flex';
+
+    const canvas=document.getElementById('scan-canvas');
+    const ctx=canvas.getContext('2d');
+
+    scanInterval=setInterval(()=>{
+      if(video.readyState===video.HAVE_ENOUGH_DATA){
+        canvas.height=video.videoHeight;
+        canvas.width=video.videoWidth;
+        ctx.drawImage(video,0,0,canvas.width,canvas.height);
+        const imageData=ctx.getImageData(0,0,canvas.width,canvas.height);
+        const code=jsQR(imageData.data,imageData.width,imageData.height,{inversionAttempts:'dontInvert'});
+        if(code){
+          stopScan();
+          handleScanResult(code.data);
+        }
+      }
+    },200);
+  }catch(e){
+    showToast('Kamera tidak dapat diakses: '+e.message,'err');
+  }
+}
+
+function stopScan(){
+  if(scanStream){ scanStream.getTracks().forEach(t=>t.stop()); scanStream=null; }
+  if(scanInterval){ clearInterval(scanInterval); scanInterval=null; }
+  scanning=false;
+  document.getElementById('start-scan-btn').style.display='flex';
+  document.getElementById('stop-scan-btn').style.display='none';
+}
+
+function handleScanResult(data){
+  const resEl=document.getElementById('scan-result');
+  resEl.style.display='block';
+
+  try{
+    const qr=JSON.parse(data);
+    // Cari arsip di DB berdasarkan id atau nomor
+    const arsip = DB.arsip.find(a=>a.id===qr.id||a.nomorDus===qr.nomor);
+
+    if(arsip){
+      // Tampilkan data real dari DB (selalu up-to-date)
+      resEl.innerHTML=`
+        <div class="info-box info-green">✅ QR Code berhasil dibaca!</div>
+        <div class="card" style="animation:fadein .3s ease">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
+            <div>
+              <div style="font-size:18px;font-weight:800">${arsip.nomorDus}</div>
+              <div style="font-size:13px;color:var(--gray)">${arsip.namaArsip}</div>
+            </div>
+            ${statusBadge(arsip.status)}
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:12px;margin-bottom:12px">
+            ${[['Divisi',arsip.divisi],['Tahun',arsip.tahunArsip],['Lokasi Rak',arsip.lokasiRak],['Jumlah Berkas',arsip.jumlahBerkas?arsip.jumlahBerkas+' berkas':'—'],['Tgl Masuk',fmtDate(arsip.tanggalMasuk)],['Masa Retensi',fmtDate(arsip.masaRetensi)]].map(([l,v])=>`
+              <div><div style="font-size:10px;color:var(--gray-md);font-weight:700;text-transform:uppercase">${l}</div><div style="font-weight:600">${v||'—'}</div></div>`).join('')}
+          </div>
+          ${arsip.keteranganIsi?`<div style="font-size:12px;color:var(--gray);padding:8px;background:var(--gray-lt);border-radius:8px;line-height:1.5">${arsip.keteranganIsi}</div>`:''}
+          <div style="display:flex;gap:8px;margin-top:12px">
+            <button class="btn btn-sm btn-primary btn-full" onclick="openDetail('${arsip.id}')">📋 Lihat Detail</button>
+            <button class="btn btn-sm btn-outline btn-full" onclick="startScan()">📷 Scan Lagi</button>
+          </div>
+        </div>`;
+    } else {
+      // QR valid tapi arsip tidak ada di DB lokal
+      resEl.innerHTML=`
+        <div class="info-box info-orange">⚠️ QR Code valid namun data tidak ditemukan di lokal. Coba sinkronkan dulu.</div>
+        <div class="card">
+          <div style="font-size:14px;font-weight:700;margin-bottom:8px">${qr.nomor||'—'}</div>
+          <div style="font-size:12px;color:var(--gray)">${qr.nama||''}</div>
+          <div style="font-size:12px;color:var(--gray)">${qr.divisi||''}</div>
+          <div style="display:flex;gap:8px;margin-top:12px">
+            <button class="btn btn-sm btn-primary btn-full" onclick="syncAll()">🔄 Sinkron Sekarang</button>
+            <button class="btn btn-sm btn-outline btn-full" onclick="startScan()">📷 Scan Lagi</button>
+          </div>
+        </div>`;
+    }
+  }catch(e){
+    // Bukan format JSON kita — tampilkan raw text
+    resEl.innerHTML=`
+      <div class="info-box info-orange">⚠️ QR bukan dari sistem ini. Data mentah:</div>
+      <div class="card">
+        <div style="font-size:12px;color:var(--gray);word-break:break-all">${data}</div>
+        <button class="btn btn-sm btn-outline btn-full" style="margin-top:10px" onclick="startScan()">📷 Scan Lagi</button>
+      </div>`;
+  }
+}
+
+// ════════════════════════════════════════════════
+// LAPORAN
+// ════════════════════════════════════════════════
+function renderLaporan(){
+  // Rekap per divisi
+  const byDivisi={};
+  DB.arsip.forEach(a=>{
+    const d=a.divisi||'Tidak Diketahui';
+    if(!byDivisi[d]) byDivisi[d]={total:0,gudang:0,keluar:0,musnah:0};
+    byDivisi[d].total++;
+    if(a.status==='Di Gudang') byDivisi[d].gudang++;
+    else if(a.status==='Keluar'||a.status==='Dipinjam') byDivisi[d].keluar++;
+    else if(a.status==='Dimusnahkan') byDivisi[d].musnah++;
+  });
+
+  const divEl=document.getElementById('rekap-divisi');
+  if(Object.keys(byDivisi).length===0){
+    divEl.innerHTML=`<div style="font-size:12px;color:var(--gray-md)">Belum ada data.</div>`;
+  } else {
+    divEl.innerHTML=Object.entries(byDivisi).sort((a,b)=>b[1].total-a[1].total).map(([div,d])=>`
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--gray-lt)">
+        <div>
+          <div style="font-size:13px;font-weight:700">${div}</div>
+          <div style="font-size:11px;color:var(--gray-md)">${d.gudang} di gudang · ${d.keluar} keluar · ${d.musnah} musnah</div>
+        </div>
+        <div style="font-size:18px;font-weight:800;color:var(--navy-mid)">${d.total}</div>
+      </div>`).join('');
+  }
+
+  // Rekap retensi
+  const retensiEl=document.getElementById('rekap-retensi');
+  const mendekat=DB.arsip
+    .filter(a=>a.masaRetensi&&a.status!=='Dimusnahkan')
+    .map(a=>({...a,diff:daysDiff(a.masaRetensi)}))
+    .filter(a=>a.diff!==null&&a.diff<=90)
+    .sort((a,b)=>a.diff-b.diff);
+
+  if(mendekat.length===0){
+    retensiEl.innerHTML=`<div style="font-size:12px;color:var(--green-mid)">✅ Tidak ada arsip yang mendekati masa retensi dalam 90 hari ke depan.</div>`;
+  } else {
+    retensiEl.innerHTML=mendekat.map(a=>`
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--gray-lt);cursor:pointer" onclick="openDetail('${a.id}')">
+        <div>
+          <div style="font-size:13px;font-weight:700">${a.nomorDus} — ${a.namaArsip}</div>
+          <div style="font-size:11px;color:var(--gray-md)">${a.divisi} · ${fmtDate(a.masaRetensi)}</div>
+        </div>
+        <span class="${a.diff<0?'retensi-over':a.diff<=30?'retensi-warn':'retensi-ok'}" style="font-size:11.5px">
+          ${a.diff<0?'LEWAT '+Math.abs(a.diff)+'h':a.diff+'h lagi'}
+        </span>
+      </div>`).join('');
+  }
+
+  // Log aktivitas
+  const logEl=document.getElementById('log-list');
+  logEl.innerHTML=`<div style="font-size:12px;color:var(--gray-md);text-align:center;padding:10px 0">
+    <button class="btn btn-sm btn-outline btn-full" onclick="loadLogs()">📋 Muat Riwayat Aktivitas dari Sheets</button>
+  </div>`;
+}
+
+async function loadLogs(){
+  const r = await api('getLogs',{});
+  if(!r) return;
+  const logs=r.logs||[];
+  const logEl=document.getElementById('log-list');
+  if(logs.length===0){
+    logEl.innerHTML=`<div style="font-size:12px;color:var(--gray-md)">Belum ada riwayat aktivitas.</div>`;
+    return;
+  }
+  const aksiIcon={'MASUK':'📥','KELUAR':'📤','PINJAM':'📋','MUSNAH':'🗑️','UPDATE':'✏️','HAPUS':'❌'};
+  logEl.innerHTML=`<div style="display:flex;flex-direction:column;gap:0">${logs.slice(0,30).map((l,i)=>`
+    <div class="tl-item">
+      <div class="tl-line-wrap">
+        <div class="tl-dot" style="background:var(--navy-pal);font-size:14px">${aksiIcon[l.aksi]||'📌'}</div>
+        ${i<Math.min(logs.length,30)-1?'<div class="tl-vline"></div>':''}
+      </div>
+      <div style="flex:1;padding-bottom:${i<Math.min(logs.length,30)-1?'12px':0}">
+        <div style="font-size:12.5px;font-weight:700">${l.nomorDus||'—'} — ${l.aksi}</div>
+        <div style="font-size:11.5px;color:var(--gray-md);line-height:1.5">${l.keterangan||''}</div>
+        <div style="font-size:10.5px;color:var(--gray-md)">${fmtDate(l.tanggal)} · ${l.operator||'Admin'}</div>
+      </div>
+    </div>`).join('')}</div>`;
+}
+
+// ════════════════════════════════════════════════
+// CLOSE OVERLAY ON BG CLICK
+// ════════════════════════════════════════════════
+document.querySelectorAll('.ovl').forEach(o=>{
+  o.addEventListener('click',e=>{ if(e.target===o) closeOvl(o.id); });
+});
+
+// ════════════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════════════
+(function init(){
+  loadLocal();
+  renderAll();
+
+  if(!API_URL){
+    document.getElementById('setup-banner').style.display='block';
+    document.getElementById('hdr-sub').textContent='Belum terhubung ke Sheets';
+  } else {
+    syncAll();
+  }
+})();
+</script>
+</body>
+</html>
